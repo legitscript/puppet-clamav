@@ -43,17 +43,12 @@ class clamav::params {
       $clamd_config      = '/etc/clamd.d/scan.conf'
       $clamd_options     = {}
 
-      #### Default values ####
-      $clamd_default_localsocket        = '/var/run/clamd.scan/clamd.sock'
-      $clamd_default_logfile            = '/var/log/clamd.log'
-      $clamd_default_pidfile            = '/var/run/clamd.scan/clamd.pid'
-      $clamd_default_databasedirectory  = '/var/lib/clamav'
-      $clamd_default_logrotate          = false # clamav-update pkg contains a logrotate conf for freshclam; manually add logrotate conf for clamd in logrotate module
-      $clamd_default_logsyslog          = false
-      $clamd_default_temporarydirectory = '/var/tmp'
-      $freshclam_default_pidfile        = undef # cron is used
-      $freshclam_default_user           = 'clamupdate'
-      $freshclam_default_updatelogfile  = '/var/log/freshclam.log'
+      #### Default values OS specific ####
+      $clamd_default_localsocket       = '/var/run/clamd.scan/clamd.sock'
+      $clamd_default_logfile           = '/var/log/clamd.log'
+      $clamd_default_pidfile           = '/var/run/clamd.scan/clamd.pid'
+      $freshclam_default_user          = 'clamupdate'
+      $freshclam_default_updatelogfile = '/var/log/freshclam.log'
 
       #### freshclam vars ####
       $freshclam_package = 'clamav-update'
@@ -117,6 +112,13 @@ class clamav::params {
       $clamav_milter_default_options = undef
     }
 
+    #### Default values OS specific ####
+    $clamd_default_databasedirectory  = '/var/lib/clamav'
+    $clamd_default_logrotate          = false # clamav-update pkg contains a logrotate conf for freshclam; manually add logrotate conf for clamd in logrotate module
+    $clamd_default_logsyslog          = false
+    $clamd_default_temporarydirectory = '/var/tmp'
+    $freshclam_default_pidfile        = undef # cron is used
+
     if versioncmp($::operatingsystemmajrelease, '2017') == 0 { # Amazon Linux 1
       $clamd_service = 'clamd.scan'
     } elsif versioncmp($::operatingsystemmajrelease, '2') == 0 { # Amazon Linux 2
@@ -172,7 +174,6 @@ class clamav::params {
     $clamav_milter_default_options = undef
 
     #### Default values OS specific ####
-    $clamd_default_databasedirectory  = '/var/lib/clamav'
     $clamd_default_localsocket        = '/var/run/clamav/clamd.ctl'
     $clamd_default_logfile            = '/var/log/clamav/clamav.log'
     $clamd_default_logrotate          = true
