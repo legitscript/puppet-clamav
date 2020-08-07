@@ -18,63 +18,103 @@ class clamav::params {
   $clamav_milter_service_ensure = 'running'
   $clamav_milter_service_enable = true
 
-  if ($::osfamily == 'RedHat') {
+  if ($::osfamily == 'RedHat') and ((versioncmp($::operatingsystemrelease, '6.0') >= 0)
+                                or (versioncmp($::operatingsystemrelease, '2') == 0)) {
     #### init vars ####
     $manage_repo    = true
     $clamav_package = 'clamav'
     $clamav_version = 'installed'
     $freshclam_service = undef # cron is used
 
-    #### user vars ####
-    $user              = 'clamscan'
-    $group             = 'clamscan'
-    $comment           = 'Clamav scanner user'
-    $uid               = 496
-    $gid               = 496
-    $home              = '/var/lib/clamav'
-    $shell             = '/sbin/nologin'
-    $groups            = undef
+    if versioncmp($::operatingsystemmajrelease, '7') >= 0
+      or versioncmp($::operatingsystemrelease, '2') == 0 {
+      #### user vars ####
+      $user              = 'clamscan'
+      $comment           = 'Clamav scanner user'
+      $uid               = 496
+      $gid               = 496
+      $home              = '/var/lib/clamav'
+      $shell             = '/sbin/nologin'
+      $group             = 'clamscan'
+      $groups            = undef
 
-    #### clamd vars ####
-    $clamd_version     = 'installed'
-    $clamd_config      = '/etc/clamd.d/scan.conf'
-    $clamd_options     = {}
+      #### clamd vars ####
+      $clamd_version     = 'installed'
+      $clamd_config      = '/etc/clamd.d/scan.conf'
+      $clamd_options     = {}
 
-    #### Default values ####
-    $clamd_default_logfile            = '/var/log/clamd.log'
-    $clamd_default_localsocket        = '/var/run/clamd.scan/clamd.sock'
-    $clamd_default_pidfile            = '/var/run/clamd.scan/clamd.pid'
-    $clamd_default_databasedirectory  = '/var/lib/clamav'
-    $clamd_default_logrotate          = false # clamav-update pkg contains a logrotate conf for freshclam; manually add logrotate conf for clamd in logrotate module
-    $clamd_default_logsyslog          = false
-    $clamd_default_temporarydirectory = '/var/tmp'
-    $freshclam_default_pidfile        = undef # cron is used
-    $freshclam_default_user  = 'clamupdate'
-    $freshclam_default_updatelogfile  = '/var/log/freshclam.log'
+      #### Default values ####
+      $clamd_default_localsocket        = '/var/run/clamd.scan/clamd.sock'
+      $clamd_default_logfile            = '/var/log/clamd.log'
+      $clamd_default_pidfile            = '/var/run/clamd.scan/clamd.pid'
+      $clamd_default_databasedirectory  = '/var/lib/clamav'
+      $clamd_default_logrotate          = false # clamav-update pkg contains a logrotate conf for freshclam; manually add logrotate conf for clamd in logrotate module
+      $clamd_default_logsyslog          = false
+      $clamd_default_temporarydirectory = '/var/tmp'
+      $freshclam_default_pidfile        = undef # cron is used
+      $freshclam_default_user           = 'clamupdate'
+      $freshclam_default_updatelogfile  = '/var/log/freshclam.log'
 
-    #### freshclam vars ####
-    $freshclam_version = 'installed'
-    $freshclam_config  = '/etc/freshclam.conf'
-    $freshclam_options = {}
-    $freshclam_delay     = undef
+      #### freshclam vars ####
+      $freshclam_package = 'clamav-update'
+      $freshclam_version = 'installed'
+      $freshclam_config  = '/etc/freshclam.conf'
+      $freshclam_options = {}
+      $freshclam_sysconfig = '/etc/sysconfig/freshclam'
+      $freshclam_delay     = undef
 
-    #### clamav_milter vars ####
-    $clamav_milter_package     = 'clamav-milter-systemd'
-    $clamav_milter_version     = 'installed'
-    $clamav_milter_config      = '/etc/mail/clamav-milter.conf'
-    $clamav_milter_service     = 'clamav-milter'
-    $clamav_milter_options     = {}
-    $clamav_milter_default_options = {
+      #### clamav_milter vars ####
+      $clamav_milter_package     = 'clamav-milter-systemd'
+      $clamav_milter_version     = 'installed'
+      $clamav_milter_config      = '/etc/mail/clamav-milter.conf'
+      $clamav_milter_service     = 'clamav-milter'
+      $clamav_milter_options     = {}
+      $clamav_milter_default_options = {
         'User'                     => 'clamilt',
         'MilterSocket'             => 'inet:8890@localhost',
         'ClamdSocket'              => 'tcp:127.0.0.1',
         'LogSyslog'                => 'yes',
-    }
+      }
 
-    # CentOS 6 does not have a freshclam package (part of clamav)
-    if versioncmp($::operatingsystemmajrelease, '6') != 0 {
-        $freshclam_package = 'clamav-update'
-        $freshclam_sysconfig = '/etc/sysconfig/freshclam'
+    } else {
+      #### user vars ####
+      $user              = 'clam'
+      $comment           = 'Clam Anti Virus Checker'
+      $uid               = 496
+      $gid               = 496
+      $home              = '/var/lib/clamav'
+      $shell             = '/sbin/nologin'
+      $group             = 'clam'
+      $groups            = undef
+
+      #### clamd vars ####
+      $clamd_package     = 'clamd'
+      $clamd_version     = 'installed'
+      $clamd_config      = '/etc/clamd.conf'
+      $clamd_options     = {}
+
+      #### Default values OS specific ####
+      $clamd_default_localsocket = '/var/run/clamav/clamd.sock'
+      $clamd_default_logfile     = '/var/log/clamav/clamd.log'
+      $clamd_default_pidfile     = '/var/run/clamav/clamd.pid'
+      $freshclam_default_databaseowner = $user
+      $freshclam_default_updatelogfile = '/var/log/clamav/freshclam.log'
+
+      #### freshclam vars ####
+      $freshclam_package = undef
+      $freshclam_version = undef
+      $freshclam_config  = '/etc/freshclam.conf'
+      $freshclam_options = {}
+      $freshclam_sysconfig = undef
+      $freshclam_delay     = undef
+
+      #### clamav_milter vars ####
+      $clamav_milter_package     = undef
+      $clamav_milter_version     = undef
+      $clamav_milter_config      = undef
+      $clamav_milter_service     = undef
+      $clamav_milter_options     = undef
+      $clamav_milter_default_options = undef
     }
 
     if versioncmp($::operatingsystemmajrelease, '2017') == 0 { # Amazon Linux 1
@@ -85,6 +125,8 @@ class clamav::params {
       $clamd_service = 'clamd'
     } elsif versioncmp($::operatingsystemmajrelease, '7') == 0 {
       $clamd_service = 'clamd@scan'
+    } else {
+      $clamd_service     = 'clamd'
     }
   } elsif ($::osfamily == 'Debian') and (
     (($::operatingsystem == 'Debian') and (versioncmp($::operatingsystemrelease, '7.0') >= 0)) or
@@ -137,7 +179,7 @@ class clamav::params {
     $clamd_default_logsyslog          = false
     $clamd_default_pidfile            = '/var/run/clamav/clamd.pid'
     $clamd_default_temporarydirectory = '/tmp'
-    $freshclam_default_user  = $user
+    $freshclam_default_user           = $user
     $freshclam_default_pidfile        = '/var/run/clamav/freshclam.pid'
     $freshclam_default_updatelogfile  = '/var/log/clamav/freshclam.log'
 
